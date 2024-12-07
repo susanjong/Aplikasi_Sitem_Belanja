@@ -72,6 +72,7 @@ int main() {
     categoryMap["kecantikan"] = {10, 14};
     categoryMap["konsumsi"] = {15, 19};
 
+    while (true) {
     int pilihan;
     system("cls");
     cout << "#@#@#@#@#@#@#@# Selamat Datang #@#@#@#@#@#@#@#\n";
@@ -87,45 +88,49 @@ int main() {
     cout << "10. Keluar\n";
     cout << "Silahkan Pilih Opsi: ";
 
-    while (true) {
+
         cin >> pilihan;
         cin.ignore();  
 
         if (pilihan == 1) {
-            system("cls");
-            int opsi;
-            while (true){
-            cout << "==== Sortir Produk ====\n";
-            cout << "1. Berdasarkan Kategori\n";
-            cout << "2. Berdasarkan Harga\n";
-            cout << "3. Kembali ke Menu Utama\n";
-            cout << "Silahkan Pilih Opsi: ";
-            cin >> opsi;
-            cin.ignore();
+            bool kembaliKeMenuUtama = false;
+            while (!kembaliKeMenuUtama){
+                int opsi;
+                system("cls");
+                cout << "==== Sortir Produk ====\n";
+                cout << "1. Berdasarkan Kategori\n";
+                cout << "2. Berdasarkan Harga\n";
+                cout << "3. Kembali ke Menu Utama\n";
+                cout << "Silahkan Pilih Opsi: ";
+                cin >> opsi;
+                cin.ignore();
 
-            if (opsi == 1) {
-                string kategori;
-                system("cls");  
-                cout << "Masukkan kategori (Elektronik, Fitness, Kecantikan, Konsumsi): ";
-                getline(cin, kategori);
+                if (opsi == 1) {
+                    string kategori;
+                    system("cls");  
+                    cout << "Masukkan kategori (Elektronik, Fitness, Kecantikan, Konsumsi): ";
+                    getline(cin, kategori);
 
-                transform(kategori.begin(), kategori.end(), kategori.begin(), ::tolower);
+                    transform(kategori.begin(), kategori.end(), kategori.begin(), ::tolower);
 
-                if (categoryMap.find(kategori) != categoryMap.end()) {
-                    auto range = categoryMap[kategori];
-                    tampilkanProduk(produk, range.first, range.second);
-                } else {
-                    cout << "Kategori tidak ditemukan!" << endl;
+                    if (categoryMap.find(kategori) != categoryMap.end()) {
+                        auto range = categoryMap[kategori];
+                        tampilkanProduk(produk, range.first, range.second);
+                    } else {
+                        cout << "Kategori tidak ditemukan!" << endl;
+                    }
+                    cout << "\n[Tekan Enter untuk kembali]";
+                    cin.get();
+                } else if (opsi == 2) {
+                    system("cls");  
+                    sortProduk(produk, 0, size - 1);
+                    cout << "Produk sudah disortir berdasarkan harga:\n";
+                    tampilkanProduk(produk, 0, size - 1);
+                    cout << "\n[Tekan Enter untuk kembali]";
+                    cin.get();
+                } else if (opsi == 3) {
+                    kembaliKeMenuUtama = true;
                 }
-            } else if (opsi == 2) {
-                sortProduk(produk, 0, size - 1);
-                cout << "Produk sudah disortir berdasarkan harga:\n";
-                tampilkanProduk(produk, 0, size - 1);
-            } else if (opsi == 3) {
-                continue;
-            }
-            cout << "\n[Tekan Enter untuk kembali]";
-            getchar();
             }
         } 
         
