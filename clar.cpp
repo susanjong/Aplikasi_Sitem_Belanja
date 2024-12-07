@@ -13,8 +13,13 @@ struct Produk {
 
     // Fungsi untuk menampilkan produk
     void display() const {
-        cout << id << ". " << nama << " - Rp " << harga << endl;
+        cout << "("<< id << ") " << nama << " - Rp " << harga << endl;
     }
+};
+
+struct BarangKeranjang {
+    Produk produk;
+    int jumlah;
 };
 
 // Fungsi untuk mencetak produk dalam rentang indeks
@@ -24,7 +29,13 @@ void tampilkanProduk(const Produk produk[], int start, int end) {
     }
 }
 
-// Fungsi untuk menyortir produk menggunakan Bubble Sort
+void tampilkanProdukTertinggi(const Produk produk[], int start, int end) {
+    for (int i = end; i >= start; i--) {
+        produk[i].display();
+    }
+}
+
+// Fungsi untuk menyortir produk Bubble Sort
 void sortProduk(Produk produk[], int start, int end) {
     for (int i = start; i <= end; ++i) { 
         for (int j = start; j < end - (i - start); ++j) {
@@ -37,12 +48,6 @@ void sortProduk(Produk produk[], int start, int end) {
     }
 }
 
-struct BarangKeranjang {
-    Produk produk;
-    int jumlah;
-};
-
-// Fungsi untuk menambahkan produk ke keranjang
 void tambahKeKeranjang(BarangKeranjang keranjang[], int& jumlahKeranjang, const Produk produk[], int id, int jumlah, int& maxKeranjang) {
     // Cari produk berdasarkan ID
     for (int i = 0; i < maxKeranjang; ++i) {
@@ -64,7 +69,6 @@ void tambahKeKeranjang(BarangKeranjang keranjang[], int& jumlahKeranjang, const 
     }
 }
 
-// Fungsi untuk melihat daftar barang dalam keranjang
 void lihatKeranjang(const BarangKeranjang keranjang[], int jumlahKeranjang) {
     if (jumlahKeranjang == 0) {
         cout << "Keranjang belanja Anda kosong!" << endl;
@@ -82,6 +86,16 @@ void lihatKeranjang(const BarangKeranjang keranjang[], int jumlahKeranjang) {
     }
     cout << "Total harga semua barang: Rp " << totalHarga << endl;
 }
+
+void cariProdukBerdasarkanID(const unordered_map<int, Produk>& produkMap, int id) {
+    auto it = produkMap.find(id);  // Mencari produk berdasarkan ID
+    if (it != produkMap.end()) {
+        it->second.display();  // Jika ditemukan, tampilkan produk
+    } else {
+        cout << "Produk dengan ID " << id << " tidak ditemukan!" << endl;
+    }
+}
+
 
 int main() {
     // Array produk
@@ -116,8 +130,20 @@ int main() {
     BarangKeranjang keranjang[maxKeranjang];
     int jumlahKeranjang = 0;  // Jumlah barang dalam keranjang
 
-    int pilihan;
+    // Hash map untuk kategori
+    unordered_map<string, pair<int, int>> categoryMap;
+    categoryMap["elektronik"] = {0, 4};
+    categoryMap["fitness"] = {5, 9};
+    categoryMap["kecantikan"] = {10, 14};
+    categoryMap["konsumsi"] = {15, 19};
+
+    unordered_map<int, Produk> produkMap;
+    for (int i = 0; i < size; ++i) {
+        produkMap[produk[i].id] = produk[i];  // Menambahkan produk ke dalam map
+    }
+
     while (true) {
+        int pilihan;
         system("cls");
         cout << "#@#@#@#@#@#@#@# Selamat Datang #@#@#@#@#@#@#@#\n";
         cout << "1. Sortir Produk berdasarkan Kategori dan Harga\n";
@@ -131,14 +157,15 @@ int main() {
         cout << "9. Detail Transaksi Riwayat Pembayaran\n";
         cout << "10. Keluar\n";
         cout << "Silahkan Pilih Opsi: ";
-        
+
         cin >> pilihan;
         cin.ignore();  
 
         if (pilihan == 1) {
-            system("cls");
-            int opsi;
-            while (true){
+            bool kembaliKeMenuUtama = false;
+            while (!kembaliKeMenuUtama){
+                int opsi;
+                system("cls");
                 cout << "==== Sortir Produk ====\n";
                 cout << "1. Berdasarkan Kategori\n";
                 cout << "2. Berdasarkan Harga\n";
@@ -154,12 +181,6 @@ int main() {
                     getline(cin, kategori);
 
                     transform(kategori.begin(), kategori.end(), kategori.begin(), ::tolower);
-                    
-                    unordered_map<string, pair<int, int>> categoryMap;
-                    categoryMap["elektronik"] = {0, 4};
-                    categoryMap["fitness"] = {5, 9};
-                    categoryMap["kecantikan"] = {10, 14};
-                    categoryMap["konsumsi"] = {15, 19};
 
                     if (categoryMap.find(kategori) != categoryMap.end()) {
                         auto range = categoryMap[kategori];
@@ -167,20 +188,41 @@ int main() {
                     } else {
                         cout << "Kategori tidak ditemukan!" << endl;
                     }
+                    cout << "\n[Tekan Enter untuk kembali]";
+                    cin.get();
                 } else if (opsi == 2) {
+                    int urutan;
+                    system("cls");  
+                    cout << "1. Terendah ke Tertinggi (Ascending)\n";
+                    cout << "2. Tertinggi ke Terendah (Descending)\n";
+                    cout << "Pilih Urutan: ";
+                    cin>>urutan;
+
                     sortProduk(produk, 0, size - 1);
-                    cout << "Produk sudah disortir berdasarkan harga:\n";
-                    tampilkanProduk(produk, 0, size - 1);
+
+                    if (urutan == 1){
+                        cout << "\nProduk sudah disortir berdasarkan harga Terendah ke Tertinggi: \n";
+                        tampilkanProduk(produk, 0, size - 1);
+                        getchar();
+                    }
+                    else if (urutan == 2){
+                        cout << "\nProduk sudah disortir berdasarkan harga Tertinggi ke Terendah: \n";
+                        tampilkanProdukTertinggi(produk, 0, size - 1);
+                        getchar();
+                    }
+                    else {
+                        cout << "Pilihan tidak Terdaftar\n";
+                    } 
+                    cout << "\n[Tekan Enter untuk kembali]";
+                    cin.get();
                 } else if (opsi == 3) {
-                    break;
+                    kembaliKeMenuUtama = true;
                 }
-                cout << "[Tekan Enter untuk kembali]"; 
-                getchar(); 
             }
         } 
         
         else if (pilihan == 2) {
-            int id, jumlah;
+           int id, jumlah;
             cout << "Masukkan ID produk yang ingin ditambahkan ke keranjang: ";
             cin >> id;
             cout << "Masukkan jumlah produk: ";
@@ -191,11 +233,26 @@ int main() {
             cin.get();
         } 
         
+        else if (pilihan == 3) {
+            system("cls");
+            int id;
+            cout << "Masukkan ID produk yang ingin dicari: ";
+            cin >> id;
+            cariProdukBerdasarkanID(produkMap, id);  // Pencarian produk berdasarkan ID menggunakan hash
+            cout << "\n[Tekan Enter untuk kembali ke menu utama]";
+            cin.get();
+            getchar();
+        }
+        
         else if (pilihan == 4) {
             lihatKeranjang(keranjang, jumlahKeranjang);
             cout << "\n[Tekan Enter untuk kembali ke menu utama]";
             getchar(); 
         } 
+        
+        else if (pilihan == 5) {
+            // Fungsionalitas untuk menghapus barang dari keranjang
+        }
         
         else if (pilihan == 10) {
             cout << "Terima kasih telah menggunakan aplikasi ini!\n";
