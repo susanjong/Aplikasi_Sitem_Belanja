@@ -1,185 +1,353 @@
 #include <iostream>
+#include <unordered_map>
+#include <algorithm>
+#include <string>
 #include <vector>
 #include <queue>
 #include <climits>
-#include <string>
-#include <iomanip>
-#include <algorithm>
-
 using namespace std;
 
-// Struktur data untuk menyimpan informasi titik
+// Struktur data untuk produk
+struct Produk {
+    int id;
+    string nama;
+    string kategori;
+    double harga;
+
+    // Fungsi untuk menampilkan produk
+    void display() const {
+        cout << "("<< id << ") " << nama << " - Rp " << harga << endl;
+    }
+};
+
+struct BarangKeranjang {
+    Produk produk;
+    int jumlah;
+};
+
+// Node untuk graph perhitungan jarak
 struct Node {
     int id;
-    vector<pair<int, int>> neighbors; // (neighbor_id, distance)
+    vector<pair<int, int>> neighbors;  // pasangan (node_id, jarak)
 };
 
-// Struktur data untuk menyimpan informasi produk
-struct Product {
-    string name;
-    int quantity;
-    int price;
-};
-
-// Fungsi untuk mencari jarak terpendek menggunakan Dijkstra's algorithm
+// Fungsi untuk mencari jalur terpendek menggunakan Dijkstra
 int findShortestPath(vector<Node>& graph, int source, int destination) {
-    vector<int> distance(graph.size(), INT_MAX);
-    priority_queue<pair<int, int>> pq; // (distance, node_id)
-
-    distance[source] = 0;
-    pq.push(make_pair(0, source));
-
+    vector<int> distance(graph.size(), INT_MAX);  // Menyimpan jarak dari source ke setiap node
+    priority_queue<pair<int, int>, vector<pair<int, int>>, greater<pair<int, int>>> pq;  // Priority queue untuk memproses node berdasarkan jarak terpendek
+    distance[source] = 0;  // Jarak dari source ke dirinya sendiri adalah 0
+    pq.push({0, source});  // Memasukkan node source ke dalam priority queue
+    
     while (!pq.empty()) {
-        int curr_node = pq.top().second;
-        int curr_distance = -pq.top().first;
+        int curr_distance = pq.top().first;
+        int curr_node = pq.top().second;  // Node yang sedang diproses
         pq.pop();
-
+        
+        // Jika node saat ini adalah tujuan, kembalikan jaraknya
         if (curr_node == destination)
             return curr_distance;
-
+        
+        // Jika jarak saat ini lebih besar daripada jarak yang sudah diketahui, lanjutkan ke node berikutnya
         if (curr_distance > distance[curr_node])
             continue;
-
+        
+        // Proses semua tetangga node saat ini
         for (auto neighbor : graph[curr_node].neighbors) {
-            int neighbor_id = neighbor.first;
-            int neighbor_distance = neighbor.second;
-
+            int neighbor_id = neighbor.first;  // ID tetangga
+            int neighbor_distance = neighbor.second;  // Jarak ke tetangga
+            
+            // Jika ditemukan jalur yang lebih pendek ke tetangga, perbarui jarak dan masukkan ke priority queue
             if (distance[neighbor_id] > curr_distance + neighbor_distance) {
                 distance[neighbor_id] = curr_distance + neighbor_distance;
-                pq.push(make_pair(-distance[neighbor_id], neighbor_id));
+                pq.push({distance[neighbor_id], neighbor_id});
             }
         }
     }
-
-    return -1; // Tidak ditemukan jalur terpendek
+    return -1;  // Jika tidak ditemukan jalur terpendek, kembalikan -1
 }
 
 // Fungsi untuk menghitung biaya pengiriman
-int calculateShippingCost(int distance, int baseRate = 3000) {
-    return distance * baseRate;
+int calculateShippingCost(int distance) {
+    if (distance < 0) return 0;  // Jarak tidak valid
+    
+    // Contoh skema biaya pengiriman berdasarkan jarak
+    if (distance <= 5) return 10000;     // Jarak dekat
+    if (distance <= 10) return 15000;    // Jarak menengah
+    if (distance <= 20) return 25000;    // Jarak jauh
+    return 50000;                        // Jarak sangat jauh
 }
 
-// Fungsi untuk menampilkan daftar produk
-void displayProductList(const vector<Product>& products) {
-    cout << "\n===== DAFTAR PRODUK =====\n";
-    for (size_t i = 0; i < products.size(); ++i) {
-        cout << i+1 << ". " << products[i].name << " - Rp. " 
-             << products[i].price << endl;
+// Fungsi untuk mencetak produk dalam rentang indeks
+void tampilkanProduk(const Produk produk[], int start, int end) {
+    for (int i = start; i <= end; ++i) {
+        produk[i].display();
     }
-    cout << "0. Selesai memilih produk\n";
+}
+
+void tampilkanProdukTertinggi(const Produk produk[], int start, int end) {
+    for (int i = end; i >= start; i--) {
+        produk[i].display();
+    }
+}
+
+// Fungsi untuk menyortir produk Bubble Sort
+void sortProduk(Produk produk[], int start, int end) {
+    for (int i = start; i <= end; ++i) { 
+        for (int j = start; j < end - (i - start); ++j) {
+            if (produk[j].harga > produk[j + 1].harga) { 
+                Produk temp = produk[j];
+                produk[j] = produk[j + 1];
+                produk[j + 1] = temp;
+            }
+        }
+    }
+}
+
+void tambahKeKeranjang(BarangKeranjang keranjang[], int& jumlahKeranjang, const Produk produk[], int id, int jumlah, int& maxKeranjang) {
+    // Cari produk berdasarkan ID
+    for (int i = 0; i < maxKeranjang; ++i) {
+        if (keranjang[i].produk.id == id) {
+            keranjang[i].jumlah += jumlah;  // Update jumlah barang
+            cout << jumlah << " produk " << keranjang[i].produk.nama << " berhasil ditambahkan ke keranjang." << endl;
+            return;
+        }
+    }
+    
+    // Jika produk belum ada di keranjang, tambahkan ke dalam keranjang
+    if (jumlahKeranjang < maxKeranjang) {
+        keranjang[jumlahKeranjang].produk = produk[id - 1];  // ID produk dimulai dari 1, array dimulai dari 0
+        keranjang[jumlahKeranjang].jumlah = jumlah;
+        ++jumlahKeranjang;
+        cout << jumlah << " produk " << produk[id - 1].nama << " berhasil ditambahkan ke keranjang." << endl;
+    } else {
+        cout << "Keranjang penuh! Tidak bisa menambahkan lebih banyak barang." << endl;
+    }
+}
+
+void lihatKeranjang(const BarangKeranjang keranjang[], int jumlahKeranjang) {
+    if (jumlahKeranjang == 0) {
+        cout << "Keranjang belanja Anda kosong!" << endl;
+        return;
+    }
+
+    cout << "Daftar Barang di Keranjang Belanja:" << endl;
+    double totalHarga = 0;
+    int totalBarang = 0;
+    for (int i = 0; i < jumlahKeranjang; ++i) {
+        double hargaTotal = keranjang[i].produk.harga * keranjang[i].jumlah;
+        totalHarga += hargaTotal;
+        totalBarang += keranjang[i].jumlah;
+        cout << keranjang[i].produk.nama << ", Jumlah: " << keranjang[i].jumlah 
+             << ", Harga : Rp " << keranjang[i].produk.harga 
+             << ", Total harga : Rp " << hargaTotal << endl;
+    }
+    cout << "Total harga semua barang: Rp " << totalHarga << endl;
+    cout << "Total jumlah barang: " << totalBarang << endl;
+}
+
+void cariProdukBerdasarkanID(const unordered_map<int, Produk>& produkMap, int id) {
+    auto it = produkMap.find(id);  // Mencari produk berdasarkan ID
+    if (it != produkMap.end()) {
+        it->second.display();  // Jika ditemukan, tampilkan produk
+    } else {
+        cout << "Produk dengan ID " << id << " tidak ditemukan!" << endl;
+    }
+}
+
+void hapusDariKeranjang(BarangKeranjang keranjang[], int& jumlahKeranjang, int id) {
+    bool ditemukan = false;
+    for (int i = 0; i < jumlahKeranjang; ++i) {
+        if (keranjang[i].produk.id == id) {
+            ditemukan = true;
+            for (int j = i; j < jumlahKeranjang - 1; ++j) {
+                keranjang[j] = keranjang[j + 1];
+            }
+            --jumlahKeranjang;
+            cout << "Barang dengan ID " << id << " berhasil dihapus dari keranjang." << endl;
+            break;
+        }
+    }
+
+    if (!ditemukan) {
+        cout << "Barang dengan ID " << id << " tidak ditemukan dalam keranjang." << endl;
+    }
 }
 
 int main() {
-    // Inisialisasi graph berdasarkan informasi pada gambar
-    vector<Node> graph = {
-        {0, {{1, 7}, {2, 2}, {5, 4}}},
-        {1, {{0, 7}, {2, 3}, {3, 4}, {4, 6}}},
-        {2, {{0, 2}, {1, 3}, {3, 1}, {4, 6}}},
-        {3, {{1, 4}, {2, 1}, {6, 11}}},
-        {4, {{1, 6}, {2, 6}, {5, 9}, {6, 4}, {7, 4}}},
-        {5, {{0, 4}, {4, 9}, {6, 5}, {7, 3}}},
-        {6, {{3, 11}, {4, 4}, {5, 5}, {7, 9}}},
-        {7, {{4, 4}, {5, 3}, {6, 9}}}
+    // Array produk
+    Produk produk[] = {
+        {1, "Smartphone Samsung Galaxy S23", "Elektronik", 12000000},
+        {2, "Laptop ASUS ROG Zephyrus G14", "Elektronik", 25000000},
+        {3, "TV LED LG 43 Inch", "Elektronik", 6500000},
+        {4, "Earbuds Apple AirPods Pro", "Elektronik", 3500000},
+        {5, "Kamera DSLR Canon EOS 90D", "Elektronik", 17000000},
+        {6, "Sepeda MTB Polygon", "Fitness", 5000000},
+        {7, "Dumbbell 5kg", "Fitness", 200000},
+        {8, "Matras Yoga", "Fitness", 250000},
+        {9, "Mesin Elliptical", "Fitness", 7500000},
+        {10, "Resistance Band", "Fitness", 100000},
+        {11, "Serum Wajah Vitamin C", "Kecantikan", 150000},
+        {12, "Masker Wajah Aloe Vera", "Kecantikan", 75000},
+        {13, "Lipstik Matte L'Oréal", "Kecantikan", 120000},
+        {14, "Parfum Chanel", "Kecantikan", 2500000},
+        {15, "Sabun Cuci Muka Himalaya", "Kecantikan", 35000},
+        {16, "Roti Tawar Serba Roti", "Konsumsi", 15000},
+        {17, "Kopi Arabica 100g", "Konsumsi", 50000},
+        {18, "Mie Instan", "Konsumsi", 5000},
+        {19, "Susu UHT Indomilk 1 Liter", "Konsumsi", 18000},
+        {20, "Teh Kotak Sosro 500ml", "Konsumsi", 7500}
     };
 
-    // Inisialisasi daftar produk
-    vector<Product> availableProducts = {
-        {"Smartphone Samsung Galaxy S23", 1, 12000000},
-        {"Laptop ASUS ROG Zephyrus G14", 1, 25000000},
-        {"TV LED LG 43 Inch", 1, 6500000},
-        {"Earbuds Apple AirPods Pro", 1, 3500000},
-        {"Kamera DSLR Canon EOS 90D", 1, 17000000},
-        {"Sepeda MTB Polygon", 1, 5000000},
-        {"Dumbbell 5kg", 1, 200000},
-        {"Matras Yoga", 1, 250000},
-        {"Mesin Elliptical", 1, 7500000},
-        {"Resistance Band", 1, 100000},
-        {"Serum Wajah Vitamin C", 1, 150000},
-        {"Masker Wajah Aloe Vera", 1, 75000},
-        {"Lipstik Matte L'Oreal", 1, 120000},
-        {"Parfum Chanel", 1, 2500000},
-        {"Sabun Cuci Muka Himalaya", 1, 35000},
-        {"Roti Tawar Serba Roti", 1, 15000},
-        {"Kopi Arabica 100g", 1, 50000},
-        {"Mie Instan", 1, 5000},
-        {"Susu UHT Indomilk 1 Liter", 1, 18000},
-        {"Teh Kotak Sosro 500ml", 1, 7500}
-    };
+    // Ukuran array
+    int size = sizeof(produk) / sizeof(produk[0]);
 
-    // Keranjang belanja
-    vector<Product> cart;
+    // Array untuk menyimpan barang dalam keranjang
+    int maxKeranjang = 100;  // Ukuran maksimal keranjang
+    BarangKeranjang keranjang[maxKeranjang];
+    int jumlahKeranjang = 0;  // Jumlah barang dalam keranjang
 
-    // Proses pemilihan produk
-    int choice;
-    int quantity;
-    do {
-        // Tampilkan daftar produk
-        displayProductList(availableProducts);
+    // Contoh graph untuk perhitungan jarak
+    vector<Node> graph(5);  // Misalnya 5 node
+    graph[0].neighbors = {{1, 5}, {2, 10}};  // Node 0 terhubung dengan node 1 (jarak 5) dan node 2 (jarak 10)
+    graph[1].neighbors = {{0, 5}, {3, 7}};   // Node 1 terhubung dengan node 0 dan node 3
+    graph[2].neighbors = {{0, 10}, {3, 15}, {4, 12}};  // Node 2 terhubung dengan node 0, 3, dan 4
+    graph[3].neighbors = {{1, 7}, {2, 15}, {4, 5}};    // Node 3 terhubung dengan node 1, 2, dan 4
+    graph[4].neighbors = {{2, 12}, {3, 5}};  // Node 4 terhubung dengan node 2 dan 3
 
-        // Minta input pilihan produk
-        cout << "\nPilih nomor produk (0 untuk selesai): ";
-        cin >> choice;
+    // Hash map untuk kategori
+    unordered_map<string, pair<int, int>> categoryMap;
+    categoryMap["elektronik"] = {0, 4};
+    categoryMap["fitness"] = {5, 9};
+    categoryMap["kecantikan"] = {10, 14};
+    categoryMap["konsumsi"] = {15, 19};
 
-        // Validasi input
-        if (choice > 0 && choice <= static_cast<int>(availableProducts.size())) {
-            // Minta jumlah produk
-            cout << "Masukkan jumlah " << availableProducts[choice-1].name << ": ";
-            cin >> quantity;
-
-            // Buat salinan produk dengan jumlah yang diinginkan
-            Product selectedProduct = availableProducts[choice-1];
-            selectedProduct.quantity = quantity;
-
-            // Tambahkan ke keranjang
-            cart.push_back(selectedProduct);
-
-            cout << quantity << " " << selectedProduct.name << " ditambahkan ke keranjang.\n";
-        } else if (choice != 0) {
-            cout << "Pilihan tidak valid. Silakan coba lagi.\n";
-        }
-    } while (choice != 0);
-
-    // Jika keranjang kosong, keluar dari program
-    if (cart.empty()) {
-        cout << "Keranjang belanja kosong. Terima kasih!\n";
-        return 0;
+    unordered_map<int, Produk> produkMap;
+    for (int i = 0; i < size; ++i) {
+        produkMap[produk[i].id] = produk[i];  // Menambahkan produk ke dalam map
     }
 
-    // Pilih titik tujuan pengiriman
-    int source = 0; // Titik awal (lokasi toko online)
-    int destination;
+    while (true) {
+        int pilihan;
+        system("cls");
+        cout << "#@#@#@#@#@#@#@# Selamat Datang #@#@#@#@#@#@#@#\n";
+        cout << "1. Sortir Produk berdasarkan Kategori dan Harga\n";
+        cout << "2. Tambahkan Produk ke Keranjang Belanja\n";
+        cout << "3. Cari Produk berdasarkan ID\n";
+        cout << "4. Lihat Daftar Barang di Keranjang\n";
+        cout << "5. Hapus Barang dari Keranjang\n";
+        cout << "6. Biaya Pengiriman berdasarkan Jarak\n";
+        cout << "7. Pembayaran\n";
+        cout << "8. Riwayat Pembayaran\n";
+        cout << "9. Detail Transaksi Riwayat Pembayaran\n";
+        cout << "10. Keluar\n";
+        cout << "Silahkan Pilih Opsi: ";
 
-    cout << "\nMasukkan titik tujuan pengiriman (0-7): ";
-    cin >> destination;
+        cin >> pilihan;
+        cin.ignore();  
 
-    // Mencari jarak terpendek
-    int shortestDistance = findShortestPath(graph, source, destination);
-    
-    if (shortestDistance != -1) {
-        // Menampilkan informasi jarak dan biaya pengiriman
-        cout << "\nJarak terpendek antara titik " << source << " dan " << destination 
-             << " adalah: " << shortestDistance << " kilometer." << endl;
+        if (pilihan == 1) {
+            // ... [previous code remains the same]
+        } 
         
-        int shippingCost = calculateShippingCost(shortestDistance);
-        cout << "Biaya pengiriman: Rp. " << shippingCost << endl;
+        else if (pilihan == 2) {
+           int id, jumlah;
+            cout << "Masukkan ID produk yang ingin ditambahkan ke keranjang: ";
+            cin >> id;
+            cout << "Masukkan jumlah produk: ";
+            cin >> jumlah;
+            tambahKeKeranjang(keranjang, jumlahKeranjang, produk, id, jumlah, maxKeranjang);
+            cin.ignore();
+            cout << "\n[Tekan Enter untuk kembali ke menu utama]";
+            cin.get();
+        } 
+        
+        else if (pilihan == 3) {
+            system("cls");
+            int id;
+            cout << "Masukkan ID produk yang ingin dicari: ";
+            cin >> id;
+            cariProdukBerdasarkanID(produkMap, id);  // Pencarian produk berdasarkan ID menggunakan hash
+            cout << "\n[Tekan Enter untuk kembali ke menu utama]";
+            cin.get();
+            getchar();
+        }
+        
+          
+        else if (pilihan == 4) {
+            lihatKeranjang(keranjang, jumlahKeranjang);
+            cout << "\n[Tekan Enter untuk kembali ke menu utama]";
+            getchar(); 
+        } 
+        
+       else if (pilihan == 5) {
+    system("cls");
+    int id;
+    cout << "Masukkan ID produk yang ingin dihapus dari keranjang: ";
+    cin >> id;
+    hapusDariKeranjang(keranjang, jumlahKeranjang, id);
+    cout << "\n[Tekan Enter untuk kembali ke menu utama]";
+    cin.ignore();
+    cin.get();
+}
 
-        // Menampilkan daftar barang di keranjang
-        cout << "\nDaftar Barang di Keranjang:" << endl;
-        int totalPrice = 0;
-        for (const auto& product : cart) {
-            int productTotal = product.quantity * product.price;
-            cout << "- " << product.name << " (Jumlah: " << product.quantity 
-                 << ", Harga: Rp. " << product.price << " per item, Subtotal: Rp. " 
-                 << productTotal << ")" << endl;
-            totalPrice += productTotal;
+else if (pilihan == 6) {
+            system("cls");
+            int source, destination;
+            cout << "Masukkan node asal (0-4): ";
+            cin >> source;
+            cout << "Masukkan node tujuan (0-4): ";
+            cin >> destination;
+
+            // Validasi input
+            if (source < 0 || source >= graph.size() || destination < 0 || destination >= graph.size()) {
+                cout << "Node tidak valid!" << endl;
+                cout << "\n[Tekan Enter untuk kembali ke menu utama]";
+                cin.ignore();
+                cin.get();
+                continue;
+            }
+
+            // Cari jarak terpendek
+            int shortestDistance = findShortestPath(graph, source, destination);
+            
+            // Hitung biaya pengiriman
+            int shippingCost = calculateShippingCost(shortestDistance);
+
+            // Tampilkan informasi pengiriman
+            if (shortestDistance != -1) {
+                cout << "Rute Tercepat dari Node " << source << " ke Node " << destination << endl;
+                cout << "Total Jarak: " << shortestDistance << " km" << endl;
+                
+                // Tampilkan total jumlah barang di keranjang
+                int totalBarang = 0;
+                for (int i = 0; i < jumlahKeranjang; ++i) {
+                    totalBarang += keranjang[i].jumlah;
+                }
+                
+                cout << "Total Jumlah Barang: " << totalBarang << endl;
+                cout << "Biaya Pengiriman: Rp " << shippingCost << endl;
+            } else {
+                cout << "Tidak ada rute yang tersedia antara node " << source << " dan " << destination << endl;
+            }
+
+            cout << "\n[Tekan Enter untuk kembali ke menu utama]";
+            cin.ignore();
+            cin.get();
         }
 
-        // Menampilkan ringkasan harga
-        cout << "\nTotal Harga Produk: Rp. " << totalPrice << endl;
-        cout << "Biaya Pengiriman: Rp. " << shippingCost << endl;
-        cout << "Total Harga Akhir: Rp. " << totalPrice + shippingCost << endl;
-    } else {
-        cout << "Tidak ditemukan jalur terpendek." << endl;
+
+ //else if (pilihan == 7) {
+    //selanjutnya letakin disini 
+
+        
+        else if (pilihan == 10) {
+            cout << "Terima kasih telah menggunakan aplikasi ini!\n";
+            break;
+        } 
+        
+        else {
+            cout << "Pilihan tidak valid. Silakan coba lagi." << endl;
+        }
     }
 
     return 0;

@@ -96,6 +96,25 @@ void cariProdukBerdasarkanID(const unordered_map<int, Produk>& produkMap, int id
     }
 }
 
+void hapusDariKeranjang(BarangKeranjang keranjang[], int& jumlahKeranjang, int id) {
+    bool ditemukan = false;
+    for (int i = 0; i < jumlahKeranjang; ++i) {
+        if (keranjang[i].produk.id == id) {
+            ditemukan = true;
+            for (int j = i; j < jumlahKeranjang - 1; ++j) {
+                keranjang[j] = keranjang[j + 1];
+            }
+            --jumlahKeranjang;
+            cout << "Barang dengan ID " << id << " berhasil dihapus dari keranjang." << endl;
+            break;
+        }
+    }
+
+    if (!ditemukan) {
+        cout << "Barang dengan ID " << id << " tidak ditemukan dalam keranjang." << endl;
+    }
+}
+
 
 int main() {
     // Array produk
@@ -250,9 +269,16 @@ int main() {
             getchar(); 
         } 
         
-        else if (pilihan == 5) {
-            // Fungsionalitas untuk menghapus barang dari keranjang
-        }
+       else if (pilihan == 5) {
+    system("cls");
+    int id;
+    cout << "Masukkan ID produk yang ingin dihapus dari keranjang: ";
+    cin >> id;
+    hapusDariKeranjang(keranjang, jumlahKeranjang, id);
+    cout << "\n[Tekan Enter untuk kembali ke menu utama]";
+    cin.ignore();
+    cin.get();
+}
         
         else if (pilihan == 10) {
             cout << "Terima kasih telah menggunakan aplikasi ini!\n";
