@@ -5,7 +5,12 @@
 #include <vector>
 #include <queue>
 #include <climits>
+#include <ctime>
+#include <iomanip>
 using namespace std;
+
+//variabel global
+int shippingCost = 0;
 
 // Struktur data untuk produk
 struct Produk {
@@ -24,6 +29,19 @@ struct BarangKeranjang {
     Produk produk;
     int jumlah;
 };
+
+struct RiwayatPembayaran {
+    string waktuPembayaran;
+    double totalHarga;
+    int totalBarang;
+    BarangKeranjang detailBarang[100];
+    int jumlahBarang;
+    string metodePembayaran;
+    int shippingCost;
+};
+
+RiwayatPembayaran riwayatPembayaran[100];
+int jumlahRiwayatPembayaran = 0;
 
 // Node untuk graph perhitungan jarak
 struct Node {
@@ -77,6 +95,122 @@ int calculateShippingCost(int distance) {
     int totalCost = distance * costPerKm;
     
     return totalCost;
+}
+
+// Fungsi untuk mendapatkan waktu sekarang dalam format string
+string getWaktuSekarang() {
+    time_t now = time(0);
+    char buffer[80];
+    tm *ltm = localtime(&now);
+    strftime(buffer, sizeof(buffer), "%d-%m-%Y %H:%M:%S", ltm);
+    return string(buffer);
+}
+
+
+void prosesPembayaran(BarangKeranjang keranjang[], int& jumlahKeranjang, int maxKeranjang, int shippingCost) {
+    if (jumlahKeranjang == 0) {
+        cout << "Keranjang belanja Anda kosong. Tidak ada yang bisa dibayar!" << endl;
+        return;
+    }
+    else if (shippingCost == 0) {
+        cout << "Masuk ke Pilihan 6 Terlebih Dahulu. Tentukan jarak kirim!" << endl;
+        return;
+    }
+
+    double totalHarga = 0;
+    for (int i = 0; i < jumlahKeranjang; ++i) {
+        totalHarga += keranjang[i].produk.harga * keranjang[i].jumlah;
+    }
+
+    int totalSemua = totalHarga + shippingCost;
+    cout << fixed << setprecision(0);
+    cout << "Total harga belanja: Rp " << totalHarga << endl;
+    cout << "Biaya Pengiriman: Rp " << shippingCost << endl;
+    cout << "Total Semuanya: Rp " << totalSemua << endl;
+
+    // Menampilkan pilihan metode pembayaran
+    cout << "\nPilih Metode Pembayaran:" << endl;
+    cout << "1. Transfer Bank" << endl;
+    cout << "2. E-Wallet" << endl;
+    cout << "3. Bayar di Tempat (COD)" << endl;
+    cout << "Masukkan pilihan (1-3): ";
+    int metodePembayaran;
+    cin >> metodePembayaran;
+
+    string metode;
+    switch (metodePembayaran) {
+        case 1:
+            metode = "Transfer Bank";
+            break;
+        case 2:
+            metode = "E-Wallet";
+            break;
+        case 3:
+            metode = "Bayar di Tempat (COD)";
+            break;
+        default:
+            cout << "Pilihan tidak valid. Pembayaran dibatalkan." << endl;
+            return;
+    }
+
+    // Konfirmasi pembayaran
+    cout << "\nAnda memilih metode pembayaran: " << metode << endl;
+    cout << "Konfirmasi pembayaran? (y/n): ";
+    char konfirmasi;
+    cin >> konfirmasi;
+
+    if (konfirmasi == 'y' || konfirmasi == 'Y') {
+        // Simpan riwayat pembayaran
+        RiwayatPembayaran pembayaran;
+        pembayaran.waktuPembayaran = getWaktuSekarang();
+        pembayaran.totalHarga = totalHarga;
+        pembayaran.totalBarang = 0;
+        pembayaran.jumlahBarang = jumlahKeranjang;
+        pembayaran.shippingCost = shippingCost;
+        pembayaran.metodePembayaran = metode;
+
+        for (int i = 0; i < jumlahKeranjang; ++i) {
+            pembayaran.detailBarang[i] = keranjang[i];
+            pembayaran.totalBarang += keranjang[i].jumlah;
+        }
+
+        pembayaran.metodePembayaran = metode; // Simpan metode pembayaran
+        riwayatPembayaran[jumlahRiwayatPembayaran++] = pembayaran;
+
+        // Kosongkan keranjang
+        jumlahKeranjang = 0;
+
+        cout << "Pembayaran berhasil dilakukan menggunakan " << metode << "!" << endl;
+    } else {
+        cout << "Pembayaran dibatalkan." << endl;
+    }
+}
+
+
+// Fungsi untuk melihat riwayat pembayaran
+void lihatRiwayatPembayaran(const RiwayatPembayaran riwayatPembayaran[], int jumlahRiwayatPembayaran) {
+    if (jumlahRiwayatPembayaran == 0) {
+        cout << "Belum ada riwayat pembayaran." << endl;
+        return;
+    }
+
+    cout << "==== Riwayat Pembayaran ====\n";
+    for (int i = 0; i < jumlahRiwayatPembayaran; ++i) {
+        cout << "\nPembayaran ke-" << i + 1 << endl;
+        cout << "Waktu: " << riwayatPembayaran[i].waktuPembayaran << endl;
+        cout << fixed << setprecision(0);
+        cout << "Total Harga Barang: Rp " << riwayatPembayaran[i].totalHarga << endl;
+        cout << "Biaya Pengiriman: Rp " << riwayatPembayaran[i].shippingCost << endl;
+        cout << "Metode Pembayaran: " << riwayatPembayaran[i].metodePembayaran << endl;
+        cout << "Total Barang: " << riwayatPembayaran[i].totalBarang << endl;
+        cout << "Detail Barang:\n";
+
+        for (int j = 0; j < riwayatPembayaran[i].jumlahBarang; ++j) {
+            cout << "- " << riwayatPembayaran[i].detailBarang[j].produk.nama
+                << ", Jumlah: " << riwayatPembayaran[i].detailBarang[j].jumlah
+                << ", Harga: Rp " << riwayatPembayaran[i].detailBarang[j].produk.harga << endl;
+        }
+    }
 }
 
 // Fungsi untuk mencetak produk dalam rentang indeks
@@ -140,8 +274,8 @@ void lihatKeranjang(const BarangKeranjang keranjang[], int jumlahKeranjang) {
         totalHarga += hargaTotal;
         totalBarang += keranjang[i].jumlah;
         cout << keranjang[i].produk.nama << ", Jumlah: " << keranjang[i].jumlah 
-             << ", Harga : Rp " << keranjang[i].produk.harga 
-             << ", Total harga : Rp " << hargaTotal << endl;
+            << ", Harga : Rp " << keranjang[i].produk.harga 
+            << ", Total harga : Rp " << hargaTotal << endl;
     }
     cout << "Total harga semua barang: Rp " << totalHarga << endl;
     cout << "Total jumlah barang: " << totalBarang << endl;
@@ -208,13 +342,13 @@ int main() {
     BarangKeranjang keranjang[maxKeranjang];
     int jumlahKeranjang = 0;  // Jumlah barang dalam keranjang
 
-// Contoh graph untuk perhitungan jarak
-vector<Node> graph(8);  // Terdapat 8 node dalam graf
-graph[0].neighbors = {{1, 5}, {3, 4}, {8, 7}};  // Node 0 terhubung dengan node 1 (jarak 5), node 3 (jarak 4), dan node 8 (jarak 7)
-graph[1].neighbors = {{0, 5}, {6, 4}};  // Node 1 terhubung dengan node 0 (jarak 5) dan node 6 (jarak 4)
-graph[2].neighbors = {{0, 7}};  // Node 2 terhubung dengan node 0 (jarak 7)
-graph[3].neighbors = {{0, 4}, {4, 4}};  // Node 3 terhubung dengan node 0 (jarak 4) dan node 4 (jarak 4)
-graph[4].neighbors = {{3, 4}, {5, 9}};  // Node 4 terhubung dengan node 3 (jarak 4) dan node 5 (jarak 9)
+    // Contoh graph untuk perhitungan jarak
+    vector<Node> graph(8);  // Terdapat 8 node dalam graf
+    graph[0].neighbors = {{1, 5}, {3, 4}, {8, 7}};  // Node 0 terhubung dengan node 1 (jarak 5), node 3 (jarak 4), dan node 8 (jarak 7)
+    graph[1].neighbors = {{0, 5}, {6, 4}};  // Node 1 terhubung dengan node 0 (jarak 5) dan node 6 (jarak 4)
+    graph[2].neighbors = {{0, 7}};  // Node 2 terhubung dengan node 0 (jarak 7)
+    graph[3].neighbors = {{0, 4}, {4, 4}};  // Node 3 terhubung dengan node 0 (jarak 4) dan node 4 (jarak 4)
+    graph[4].neighbors = {{3, 4}, {5, 9}};  // Node 4 terhubung dengan node 3 (jarak 4) dan node 5 (jarak 9)
 
 
 
@@ -310,7 +444,7 @@ graph[4].neighbors = {{3, 4}, {5, 9}};  // Node 4 terhubung dengan node 3 (jarak
         } 
         
         else if (pilihan == 2) {
-           int id, jumlah;
+            int id, jumlah;
             cout << "Masukkan ID produk yang ingin ditambahkan ke keranjang: ";
             cin >> id;
             cout << "Masukkan jumlah produk: ";
@@ -339,18 +473,18 @@ graph[4].neighbors = {{3, 4}, {5, 9}};  // Node 4 terhubung dengan node 3 (jarak
             getchar(); 
         } 
         
-       else if (pilihan == 5) {
-    system("cls");
-    int id;
-    cout << "Masukkan ID produk yang ingin dihapus dari keranjang: ";
-    cin >> id;
-    hapusDariKeranjang(keranjang, jumlahKeranjang, id);
-    cout << "\n[Tekan Enter untuk kembali ke menu utama]";
-    cin.ignore();
-    cin.get();
-}
+        else if (pilihan == 5) {
+            system("cls");
+            int id;
+            cout << "Masukkan ID produk yang ingin dihapus dari keranjang: ";
+            cin >> id;
+            hapusDariKeranjang(keranjang, jumlahKeranjang, id);
+            cout << "\n[Tekan Enter untuk kembali ke menu utama]";
+            cin.ignore();
+            cin.get();
+        }
 
-else if (pilihan == 6) {
+        else if (pilihan == 6) {
             system("cls");
             int source, destination;
             cout << "Masukkan node asal (0-4): ";
@@ -371,7 +505,7 @@ else if (pilihan == 6) {
             int shortestDistance = findShortestPath(graph, source, destination);
             
             // Hitung biaya pengiriman
-            int shippingCost = calculateShippingCost(shortestDistance);
+            shippingCost = calculateShippingCost(shortestDistance);
 
             // Tampilkan informasi pengiriman
             if (shortestDistance != -1) {
@@ -395,10 +529,21 @@ else if (pilihan == 6) {
             cin.get();
         }
 
+        else if (pilihan == 7) {
+            system("cls");
+            prosesPembayaran(keranjang, jumlahKeranjang, maxKeranjang, shippingCost);
+            cout << "\n[Tekan Enter untuk kembali ke menu utama]";
+            cin.ignore();
+            cin.get();
+        }
 
- //else if (pilihan == 7) {
-    //selanjutnya letakin disini 
-
+        else if (pilihan == 8) {
+            system("cls");
+            lihatRiwayatPembayaran(riwayatPembayaran, jumlahRiwayatPembayaran);
+            cout << "\n[Tekan Enter untuk kembali ke menu utama]";
+            cin.ignore();
+            cin.get();
+        }
         
         else if (pilihan == 10) {
             cout << "Terima kasih telah menggunakan aplikasi ini!\n";
