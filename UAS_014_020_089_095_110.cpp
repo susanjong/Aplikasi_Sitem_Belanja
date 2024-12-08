@@ -70,11 +70,13 @@ int findShortestPath(vector<Node>& graph, int source, int destination) {
 int calculateShippingCost(int distance) {
     if (distance < 0) return 0;  // Jarak tidak valid
     
-    // Contoh skema biaya pengiriman berdasarkan jarak
-    if (distance <= 5) return 10000;     // Jarak dekat
-    if (distance <= 10) return 15000;    // Jarak menengah
-    if (distance <= 20) return 25000;    // Jarak jauh
-    return 50000;                        // Jarak sangat jauh
+    // Biaya pengiriman per kilometer
+    const int costPerKm = 3000;
+    
+    // Menghitung total biaya berdasarkan jarak
+    int totalCost = distance * costPerKm;
+    
+    return totalCost;
 }
 
 // Fungsi untuk mencetak produk dalam rentang indeks
@@ -206,13 +208,15 @@ int main() {
     BarangKeranjang keranjang[maxKeranjang];
     int jumlahKeranjang = 0;  // Jumlah barang dalam keranjang
 
-    // Contoh graph untuk perhitungan jarak
-    vector<Node> graph(5);  // Misalnya 5 node
-    graph[0].neighbors = {{1, 5}, {2, 10}};  // Node 0 terhubung dengan node 1 (jarak 5) dan node 2 (jarak 10)
-    graph[1].neighbors = {{0, 5}, {3, 7}};   // Node 1 terhubung dengan node 0 dan node 3
-    graph[2].neighbors = {{0, 10}, {3, 15}, {4, 12}};  // Node 2 terhubung dengan node 0, 3, dan 4
-    graph[3].neighbors = {{1, 7}, {2, 15}, {4, 5}};    // Node 3 terhubung dengan node 1, 2, dan 4
-    graph[4].neighbors = {{2, 12}, {3, 5}};  // Node 4 terhubung dengan node 2 dan 3
+// Contoh graph untuk perhitungan jarak
+vector<Node> graph(8);  // Terdapat 8 node dalam graf
+graph[0].neighbors = {{1, 5}, {3, 4}, {8, 7}};  // Node 0 terhubung dengan node 1 (jarak 5), node 3 (jarak 4), dan node 8 (jarak 7)
+graph[1].neighbors = {{0, 5}, {6, 4}};  // Node 1 terhubung dengan node 0 (jarak 5) dan node 6 (jarak 4)
+graph[2].neighbors = {{0, 7}};  // Node 2 terhubung dengan node 0 (jarak 7)
+graph[3].neighbors = {{0, 4}, {4, 4}};  // Node 3 terhubung dengan node 0 (jarak 4) dan node 4 (jarak 4)
+graph[4].neighbors = {{3, 4}, {5, 9}};  // Node 4 terhubung dengan node 3 (jarak 4) dan node 5 (jarak 9)
+
+
 
     // Hash map untuk kategori
     unordered_map<string, pair<int, int>> categoryMap;
