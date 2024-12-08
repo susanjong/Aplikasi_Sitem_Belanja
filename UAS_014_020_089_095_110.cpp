@@ -250,7 +250,63 @@ graph[4].neighbors = {{3, 4}, {5, 9}};  // Node 4 terhubung dengan node 3 (jarak
         cin.ignore();  
 
         if (pilihan == 1) {
-            // ... [previous code remains the same]
+            bool kembaliKeMenuUtama = false;
+            while (!kembaliKeMenuUtama){
+                int opsi;
+                system("cls");
+                cout << "==== Sortir Produk ====\n";
+                cout << "1. Berdasarkan Kategori\n";
+                cout << "2. Berdasarkan Harga\n";
+                cout << "3. Kembali ke Menu Utama\n";
+                cout << "Silahkan Pilih Opsi: ";
+                cin >> opsi;
+                cin.ignore();
+
+                if (opsi == 1) {
+                    string kategori;
+                    system("cls");  
+                    cout << "Masukkan kategori (Elektronik, Fitness, Kecantikan, Konsumsi): ";
+                    getline(cin, kategori);
+
+                    transform(kategori.begin(), kategori.end(), kategori.begin(), ::tolower);
+
+                    if (categoryMap.find(kategori) != categoryMap.end()) {
+                        auto range = categoryMap[kategori];
+                        tampilkanProduk(produk, range.first, range.second);
+                    } else {
+                        cout << "Kategori tidak ditemukan!" << endl;
+                    }
+                    cout << "\n[Tekan Enter untuk kembali]";
+                    cin.get();
+                } else if (opsi == 2) {
+                    int urutan;
+                    system("cls");  
+                    cout << "1. Terendah ke Tertinggi (Ascending)\n";
+                    cout << "2. Tertinggi ke Terendah (Descending)\n";
+                    cout << "Pilih Urutan: ";
+                    cin>>urutan;
+
+                    sortProduk(produk, 0, size - 1);
+
+                    if (urutan == 1){
+                        cout << "\nProduk sudah disortir berdasarkan harga Terendah ke Tertinggi: \n";
+                        tampilkanProduk(produk, 0, size - 1);
+                        getchar();
+                    }
+                    else if (urutan == 2){
+                        cout << "\nProduk sudah disortir berdasarkan harga Tertinggi ke Terendah: \n";
+                        tampilkanProdukTertinggi(produk, 0, size - 1);
+                        getchar();
+                    }
+                    else {
+                        cout << "Pilihan tidak Terdaftar\n";
+                    } 
+                    cout << "\n[Tekan Enter untuk kembali]";
+                    cin.get();
+                } else if (opsi == 3) {
+                    kembaliKeMenuUtama = true;
+                }
+            }
         } 
         
         else if (pilihan == 2) {
