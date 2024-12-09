@@ -197,11 +197,7 @@ void lihatRiwayatPembayaran(const RiwayatPembayaran riwayatPembayaran[], int jum
     cout << "==== Riwayat Pembayaran ====\n";
     for (int i = 0; i < jumlahRiwayatPembayaran; ++i) {
         cout << "\nPembayaran ke-" << i + 1 << endl;
-        cout << "Waktu: " << riwayatPembayaran[i].waktuPembayaran << endl;
-        cout << fixed << setprecision(0);
         cout << "Total Harga Barang: Rp " << riwayatPembayaran[i].totalHarga << endl;
-        cout << "Biaya Pengiriman: Rp " << riwayatPembayaran[i].shippingCost << endl;
-        cout << "Metode Pembayaran: " << riwayatPembayaran[i].metodePembayaran << endl;
         cout << "Total Barang: " << riwayatPembayaran[i].totalBarang << endl;
         cout << "Detail Barang:\n";
 
@@ -210,6 +206,60 @@ void lihatRiwayatPembayaran(const RiwayatPembayaran riwayatPembayaran[], int jum
                 << ", Jumlah: " << riwayatPembayaran[i].detailBarang[j].jumlah
                 << ", Harga: Rp " << riwayatPembayaran[i].detailBarang[j].produk.harga << endl;
         }
+    }
+}
+
+void lihatDetailRiwayatPembayaran(const RiwayatPembayaran riwayatPembayaran[], int jumlahRiwayatPembayaran) {
+    unordered_map<int, string> pembayaranDetails;
+
+    for (int i = 0; i < jumlahRiwayatPembayaran; ++i) {
+        string detailPembayaran = "";
+
+        // Menambahkan informasi riwayat pembayaran
+        detailPembayaran += "Waktu: " + riwayatPembayaran[i].waktuPembayaran + "\n";
+
+        // Menggunakan ostringstream untuk mengatur tampilan harga
+        ostringstream hargaStream;
+        if (riwayatPembayaran[i].totalHarga == static_cast<int>(riwayatPembayaran[i].totalHarga)) {
+            hargaStream << fixed << setprecision(0) << riwayatPembayaran[i].totalHarga;
+        } else {
+            hargaStream << fixed << setprecision(2) << riwayatPembayaran[i].totalHarga;
+        }
+        string totalHarga = hargaStream.str();
+        
+        // Menambahkan detail harga dan biaya pengiriman
+        detailPembayaran += "Total Harga Barang: Rp " + totalHarga + "\n";
+        
+        ostringstream shippingCostStream;
+        shippingCostStream << fixed << setprecision(2) << riwayatPembayaran[i].shippingCost;
+        string shippingCost = shippingCostStream.str();
+        detailPembayaran += "Biaya Pengiriman: Rp " + shippingCost + "\n";
+
+        // Menambahkan metode pembayaran dan total barang
+        detailPembayaran += "Metode Pembayaran: " + riwayatPembayaran[i].metodePembayaran + "\n";
+        detailPembayaran += "Total Barang: " + to_string(riwayatPembayaran[i].totalBarang) + "\n";
+        
+        // Menambahkan detail barang
+        for (int j = 0; j < riwayatPembayaran[i].jumlahBarang; ++j) {
+            ostringstream hargaBarangStream;
+            hargaBarangStream << fixed << setprecision(2) << riwayatPembayaran[i].detailBarang[j].produk.harga;
+            string hargaBarang = hargaBarangStream.str();
+            detailPembayaran += "- " + riwayatPembayaran[i].detailBarang[j].produk.nama
+                                + ", Harga: Rp " + hargaBarang + "\n";
+        }
+
+        pembayaranDetails[i] = detailPembayaran; // Menyimpan seluruh detail barang untuk pembayaran ke-i
+    }
+
+    if (pembayaranDetails.empty()) {
+        cout << "Belum ada riwayat pembayaran." << endl;
+        return;
+    }
+
+    cout << "==== Riwayat Pembayaran (Hash Map) ====\n";
+    for (const auto& entry : pembayaranDetails) {
+        cout << "\nPembayaran ke-" << entry.first + 1 << endl;
+        cout << entry.second; // Menampilkan seluruh detail pembayaran
     }
 }
 
@@ -541,6 +591,14 @@ int main() {
             system("cls");
             lihatRiwayatPembayaran(riwayatPembayaran, jumlahRiwayatPembayaran);
             cout << "\n[Tekan Enter untuk kembali ke menu utama]";
+            cin.ignore();
+            cin.get();
+        }
+
+        else if (pilihan == 9) {
+            system("cls");
+             lihatDetailRiwayatPembayaran(riwayatPembayaran, jumlahRiwayatPembayaran);
+             cout << "\n[Tekan Enter untuk kembali ke menu utama]";
             cin.ignore();
             cin.get();
         }
