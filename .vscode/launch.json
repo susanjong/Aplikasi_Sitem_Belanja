@@ -8,8 +8,8 @@
       "args": [],
       "stopAtEntry": false,
       "externalConsole": true,
-      "cwd": "c:/Users/Asus/Downloads/UAS STRUKDAT/Aplikasi_Sitem_Belanja",
-      "program": "c:/Users/Asus/Downloads/UAS STRUKDAT/Aplikasi_Sitem_Belanja/build/Debug/outDebug",
+      "cwd": "c:/Users/Asus/Downloads/STRUKDAT/Aplikasi_Sitem_Belanja",
+      "program": "c:/Users/Asus/Downloads/STRUKDAT/Aplikasi_Sitem_Belanja/build/Debug/outDebug",
       "MIMode": "gdb",
       "miDebuggerPath": "gdb",
       "setupCommands": [

@@ -84,7 +84,7 @@ int findShortestPath(vector<Node>& graph, int source, int destination) {
     return -1;  // Jika tidak ditemukan jalur terpendek, kembalikan -1
 }
 
-// Fungsi untuk menghitung biaya pengiriman
+// Fungsi untuk menghitung biaya pengiriman (Susan)
 int calculateShippingCost(int distance) {
     if (distance < 0) return 0;  // Jarak tidak valid
     
@@ -340,6 +340,7 @@ void cariProdukBerdasarkanID(const unordered_map<int, Produk>& produkMap, int id
     }
 }
 
+//ini dibuat untuk hapus dari keranjang (bagian Susan untuk nomor 5)
 void hapusDariKeranjang(BarangKeranjang keranjang[], int& jumlahKeranjang, int id) {
     bool ditemukan = false;
     for (int i = 0; i < jumlahKeranjang; ++i) {
@@ -384,7 +385,7 @@ int main() {
         {20, "Teh Kotak Sosro 500ml", "Konsumsi", 7500}
     };
 
-    // Ukuran array
+    // Ukuran array (bagian Susan)
     int size = sizeof(produk) / sizeof(produk[0]);
 
     // Array untuk menyimpan barang dalam keranjang
@@ -394,11 +395,12 @@ int main() {
 
     // Contoh graph untuk perhitungan jarak
     vector<Node> graph(8);  // Terdapat 8 node dalam graf
-    graph[0].neighbors = {{1, 5}, {3, 4}, {8, 7}};  // Node 0 terhubung dengan node 1 (jarak 5), node 3 (jarak 4), dan node 8 (jarak 7)
-    graph[1].neighbors = {{0, 5}, {6, 4}};  // Node 1 terhubung dengan node 0 (jarak 5) dan node 6 (jarak 4)
-    graph[2].neighbors = {{0, 7}};  // Node 2 terhubung dengan node 0 (jarak 7)
-    graph[3].neighbors = {{0, 4}, {4, 4}};  // Node 3 terhubung dengan node 0 (jarak 4) dan node 4 (jarak 4)
-    graph[4].neighbors = {{3, 4}, {5, 9}};  // Node 4 terhubung dengan node 3 (jarak 4) dan node 5 (jarak 9)
+    graph[0].neighbors = {{1, 5}, {3, 4}, {8, 7}};  
+    graph[1].neighbors = {{0, 5}, {6, 4}};  
+    graph[2].neighbors = {{0, 7}};  
+    graph[3].neighbors = {{0, 4}, {4, 4}};  
+    graph[4].neighbors = {{3, 4}, {5, 9}};  
+    // node dulu masukkan angkanya baru setelah koma itu adalah jaraknya 
 
 
 
@@ -523,6 +525,7 @@ int main() {
             getchar(); 
         } 
         
+        //Ini bagian Susan punya poin kerjainnya 
         else if (pilihan == 5) {
             system("cls");
             int id;
@@ -534,6 +537,7 @@ int main() {
             cin.get();
         }
 
+        //Ini bagian Susan punya poin kerjainnya untuk hitung jarak terpendek-terpanjang 
         else if (pilihan == 6) {
             system("cls");
             int source, destination;
